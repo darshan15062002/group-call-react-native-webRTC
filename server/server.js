@@ -75,21 +75,29 @@ io.on('connection', (socket) => {
 
         activeRooms.set(room_id, {
             creator: email_id,
-            participants: new Map(),
+            participants: new Map().set(email_id, {
+                socketId: socket.id,
+                joinedAt: Date.now(),
+
+            }),
             created_at: Date.now(),
             max_participants: 10
         });
 
+
         socket.join(room_id);
 
         socket.emit('group_call_created', { room_id });
+
+        console.log("============================room is created======================================", room_id, activeRooms.get(room_id));
+
     })
 
     socket.on("join_group_call", async (data) => {
 
         const { room_id, participant_email } = data;
 
-        console.log("============================group call join data======================================", participant_email, room_id);
+
         const room = activeRooms.get(room_id);
 
         if (!room) {
@@ -115,7 +123,7 @@ io.on('connection', (socket) => {
             participant_email,
             total_participants: room?.participants?.size
         });
-
+        console.log("============================group call join data======================================", participant_email, room_id);
 
     })
 
@@ -134,7 +142,10 @@ io.on('connection', (socket) => {
 
         socket.to(socketId).emit("incomming_call", { offer, fromEmail: myEmail })
 
-
+        console.log(
+            '============================ send calling  to new user ======================================',
+            email_id, room_id, myEmail,
+        );
 
 
     })
@@ -149,6 +160,10 @@ io.on('connection', (socket) => {
 
         socket.to(socketId).emit("call_accepted", { ans, fromEmail: myEmail })
 
+        console.log(
+            '============================ call accepted by old user   ======================================',
+            myEmail,
+        );
 
     })
 
@@ -175,6 +190,11 @@ io.on('connection', (socket) => {
             socket.to(socketId).emit('ice_candidate', { candidate, myEmail: email_id, room_id, fromEmail: myEmail });
             console.log('ICE candidate sent to:', email_id);
         }
+
+        console.log(
+            '============================ ice candidated  sended to new user   ======================================',
+            myEmail,
+        );
     });
 
     // Handle client disconnect

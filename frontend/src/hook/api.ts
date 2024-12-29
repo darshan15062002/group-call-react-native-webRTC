@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // const server = "https://ice-server-socket.onrender.com/api/v1"
-const server = "http://192.168.0.105:8000/api/v1"
+const server = "http://192.168.0.110:8000/api/v1"
 export const loadUser = async () => {
     try {
 

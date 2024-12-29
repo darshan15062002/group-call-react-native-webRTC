@@ -58,7 +58,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
       let _socket = socket;
 
       if (!_socket) {
-        _socket = io('http://192.168.0.105:8000');
+        _socket = io('http://192.168.0.110:8000');
         console.log(_socket, 'Initialized socket');
         setSocket(_socket);
       }
@@ -93,7 +93,9 @@ const VideoCallScreen = ({route, navigation}: any) => {
     try {
       const offer = await pc.createOffer({});
       await pc.setLocalDescription(offer);
-
+      console.log(
+        '============================ offer created ======================================',
+      );
       return offer;
     } catch (error) {
       console.error('Error creating offer:', error);
@@ -119,6 +121,10 @@ const VideoCallScreen = ({route, navigation}: any) => {
       });
       setRemoteEmailId(participant_email);
     }
+    console.log(
+      '============================ new USer Arrive ======================================',
+      participant_email,
+    );
   };
   // --------------------------------------------------------------------------------------
 
@@ -157,6 +163,11 @@ const VideoCallScreen = ({route, navigation}: any) => {
         ans,
       });
       setRemoteEmailId(fromEmail);
+
+      console.log(
+        '============================ call accepted by new user   ======================================',
+        fromEmail,
+      );
     }
   };
   // --------------------------------------------------------------------------------------
@@ -171,6 +182,11 @@ const VideoCallScreen = ({route, navigation}: any) => {
         peerConnections.current
           .get(fromEmail)
           ?.setRemoteDescription(answerDescription);
+
+        console.log(
+          '============================ call accepted done by old user user   ======================================',
+          fromEmail,
+        );
       } catch (error) {
         console.error('Error setting setRemoteDescription:', error);
       }
@@ -268,13 +284,19 @@ const VideoCallScreen = ({route, navigation}: any) => {
 
     // Reset state variables
     setStream(null);
-    setRemoteStream(null);
+    setRemoteStreams(null);
     setRoomJoin('');
 
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('Login');
+    }
+  };
+  const handleHagout = () => {
+    if (peerConnections.current && socket) {
+      socket.emit('end-call', {room_id: roomId});
+      handleEndCall();
     }
   };
 
@@ -289,6 +311,11 @@ const VideoCallScreen = ({route, navigation}: any) => {
               rood_id: roomId,
               candidate: event.candidate,
             });
+
+            console.log(
+              '============================ ice candidated  created and sended   ======================================',
+              emailOfPeers,
+            );
           }
         };
 
@@ -320,7 +347,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
 
   useEffect(() => {
     // const _socket = io('https://ice-server-socket.onrender.com');
-    const _socket = io('http://192.168.0.105:8000');
+    const _socket = io('http://192.168.0.110:8000');
     // _socket.emit('set-status', {code});
     setSocket(_socket);
   }, []);
@@ -371,11 +398,11 @@ const VideoCallScreen = ({route, navigation}: any) => {
       }}>
       <VideoStreamView
         stream={stream}
-        remoteStream={remoteStream}
+        remoteStreams={remoteStreams}
         localWebcamOn={localWebcamOn}
       />
 
-      {(remoteStream || stream) && (
+      {(remoteStreams || stream) && (
         <CallControls
           localMicOn={localMicOn}
           localWebcamOn={localWebcamOn}

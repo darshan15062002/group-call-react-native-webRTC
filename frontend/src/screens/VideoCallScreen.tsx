@@ -88,11 +88,11 @@ const VideoCallScreen = ({route, navigation}: any) => {
   // --------------------------------------------------------------------------------
   // when there is new user with same code on server this even trigger
   // we create offer and send buy socket newly arrived user
-  const createOffer = async () => {
-    if (!peerConnection.current) return;
+  const createOffer = async (pc: any) => {
+    if (!peerConnections.current) return;
     try {
-      const offer = await peerConnection.current.createOffer({});
-      await peerConnection.current.setLocalDescription(offer);
+      const offer = await pc.createOffer({});
+      await pc.setLocalDescription(offer);
 
       return offer;
     } catch (error) {
@@ -109,7 +109,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
     stream?.getTracks().forEach(track => pc.addTrack(track, stream));
 
     if (socket) {
-      const offer = await createOffer();
+      const offer = await createOffer(pc);
       console.log('new USer Arrive ');
       socket.emit('call_user', {
         participant_email,
@@ -125,14 +125,14 @@ const VideoCallScreen = ({route, navigation}: any) => {
   // --------------------------------------------------------------------------------------
   // when  newly arrive user receive offer he create ans
   // and send back to user who start calling
-  const createAns = async (offer: any) => {
-    if (!peerConnection.current) return;
+  const createAns = async (offer: any, pc: any) => {
+    if (!pc) return;
     try {
       // console.log('offer recived to peer', offer);
       const offerDescription = new RTCSessionDescription(offer);
-      await peerConnection.current.setRemoteDescription(offerDescription);
-      const answerDescription = await peerConnection.current.createAnswer();
-      await peerConnection.current.setLocalDescription(answerDescription);
+      await pc.setRemoteDescription(offerDescription);
+      const answerDescription = await pc.createAnswer();
+      await pc.setLocalDescription(answerDescription);
 
       return answerDescription;
     } catch (error) {
@@ -142,7 +142,13 @@ const VideoCallScreen = ({route, navigation}: any) => {
   const handleIncommingCall = async (data: any) => {
     if (socket) {
       const {fromEmail, offer} = data;
-      const ans = await createAns(offer);
+      const pc = new RTCPeerConnection(configuration);
+      peerConnections.current.set(fromEmail, pc);
+
+      // Add local tracks
+      stream?.getTracks().forEach(track => pc.addTrack(track, stream));
+
+      const ans = await createAns(offer, pc);
 
       socket.emit('call_accepted', {
         email_id: fromEmail,
@@ -188,13 +194,6 @@ const VideoCallScreen = ({route, navigation}: any) => {
           });
 
           setStream(_stream);
-
-          // Add each track from the local stream to the peer connection
-          _stream.getTracks().forEach(track => {
-            peerConnection.current.addTrack(track, _stream);
-          });
-
-          // Set the stream to be shown locally in the RTCView
         } catch (error) {
           console.error('Error accessing media devices.', error);
         }
@@ -256,9 +255,10 @@ const VideoCallScreen = ({route, navigation}: any) => {
     console.log('call ended');
 
     // Close the peer connection
-    if (peerConnection.current) {
-      peerConnection.current.close();
-      peerConnection.current = null; // Clear the reference
+    if (peerConnections.current) {
+      peerConnections.current.forEach(pc => pc.close());
+      peerConnections.current.clear();
+      stream?.getTracks().forEach(track => track.stop());
     }
 
     // Stop all local media tracks
@@ -316,23 +316,14 @@ const VideoCallScreen = ({route, navigation}: any) => {
         };
       }
     }
-  }, [socket, peerConnection, remoteEmailId]);
+  }, [socket, peerConnections.current]);
 
   useEffect(() => {
-    peerConnection.current = new RTCPeerConnection(configuration);
-
     // const _socket = io('https://ice-server-socket.onrender.com');
     const _socket = io('http://192.168.0.105:8000');
     // _socket.emit('set-status', {code});
     setSocket(_socket);
   }, []);
-
-  const handleHagout = () => {
-    if (peerConnection.current && socket) {
-      socket.emit('end-call', {room_id: roomId});
-      handleEndCall();
-    }
-  };
 
   function toggleMic() {
     if (stream) {

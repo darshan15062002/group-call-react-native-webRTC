@@ -1,0 +1,25 @@
+workflows:
+  react-native-android:
+    name: React Native Android Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        PACKAGE_NAME: 'com.videoCall.package'
+    scripts:
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Install npm dependencies
+        script: |
+          npm install
+      - name: Set executable permission for Gradle wrapper
+        script: |
+          cd android
+          chmod +x gradlew
+      - name: Build Android release APK
+        script: |
+          cd android  # Ensure we're in the android folder
+          ./gradlew assembleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.apk

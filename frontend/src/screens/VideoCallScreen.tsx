@@ -25,6 +25,7 @@ const configuration = {
       urls: 'stun:stun2.l.google.com:19302',
     },
   ],
+  iceCandidatePoolSize: 10,
 };
 const VideoCallScreen = ({route, navigation}: any) => {
   const {user} = useUser();
@@ -59,7 +60,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
 
       if (!_socket) {
         _socket = io('http://192.168.0.110:8000');
-        console.log(_socket, 'Initialized socket');
+
         setSocket(_socket);
       }
 
@@ -103,18 +104,50 @@ const VideoCallScreen = ({route, navigation}: any) => {
     }
   };
 
-  const handleNewUserJoin = async ({participant_email}: any) => {
+  const createPeerConnection = (remoteEmail: string) => {
     const pc = new RTCPeerConnection(configuration);
-    peerConnections.current.set(participant_email, pc);
 
-    // Add local tracks
-    stream?.getTracks().forEach(track => pc.addTrack(track, stream));
+    // Set up ice candidate handler
+    pc.onicecandidate = event => {
+      if (event.candidate && socket) {
+        console.log('Ice candidate created for:', remoteEmail);
+        socket.emit('ice_candidate', {
+          email_id: remoteEmail,
+          myEmail: email,
+          room_id: roomId,
+          candidate: event.candidate,
+        });
+      }
+    };
 
+    // Handle incoming tracks
+    pc.ontrack = event => {
+      const [remoteStream] = event.streams;
+      if (remoteStream) {
+        console.log('Received remote stream from:', remoteEmail);
+        setRemoteStreams(prev => new Map(prev.set(remoteEmail, remoteStream)));
+      }
+    };
+
+    // Add local stream tracks
+    if (stream) {
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream);
+      });
+    }
+
+    peerConnections.current.set(remoteEmail, pc);
+    return pc;
+  };
+
+  const handleNewUserJoin = async ({participant_email}: any) => {
+    console.log('New user joined:', participant_email);
+    const pc = createPeerConnection(participant_email);
     if (socket) {
       const offer = await createOffer(pc);
       console.log('new USer Arrive ');
       socket.emit('call_user', {
-        participant_email,
+        email_id: participant_email,
         room_id: roomId,
         myEmail: email,
         offer,
@@ -148,12 +181,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
   const handleIncommingCall = async (data: any) => {
     if (socket) {
       const {fromEmail, offer} = data;
-      const pc = new RTCPeerConnection(configuration);
-      peerConnections.current.set(fromEmail, pc);
-
-      // Add local tracks
-      stream?.getTracks().forEach(track => pc.addTrack(track, stream));
-
+      const pc = createPeerConnection(fromEmail);
       const ans = await createAns(offer, pc);
 
       socket.emit('call_accepted', {
@@ -176,20 +204,15 @@ const VideoCallScreen = ({route, navigation}: any) => {
   // when call accepted user Receive the ans of offer
   // set to there remote description
   const handleCallAccepted = async ({ans, fromEmail}: any) => {
-    if (peerConnections?.current.get(fromEmail)) {
-      try {
+    try {
+      const pc = peerConnections.current.get(fromEmail);
+      if (pc) {
         const answerDescription = new RTCSessionDescription(ans);
-        peerConnections.current
-          .get(fromEmail)
-          ?.setRemoteDescription(answerDescription);
-
-        console.log(
-          '============================ call accepted done by old user user   ======================================',
-          fromEmail,
-        );
-      } catch (error) {
-        console.error('Error setting setRemoteDescription:', error);
+        await pc.setRemoteDescription(answerDescription);
+        console.log('Call accepted from:', fromEmail);
       }
+    } catch (error) {
+      console.error('Error in handleCallAccepted:', error);
     }
   };
   // --------------------------------------------------------------------------------------
@@ -257,13 +280,13 @@ const VideoCallScreen = ({route, navigation}: any) => {
 
   const handleIceCandidate = async ({myEmail, fromEmail, candidate}: any) => {
     try {
-      if (candidate && peerConnections.current) {
-        await peerConnections.current
-          .get(fromEmail)
-          ?.addIceCandidate(new RTCIceCandidate(candidate));
+      const pc = peerConnections.current.get(fromEmail);
+      if (pc && candidate) {
+        console.log('Adding ICE candidate for:', fromEmail);
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
       }
     } catch (error) {
-      console.error('Error adding received ICE candidate', error);
+      console.error('Error adding ICE candidate:', error);
     }
   };
 
@@ -304,11 +327,13 @@ const VideoCallScreen = ({route, navigation}: any) => {
     if (socket && peerConnections.current) {
       for (const [emailOfPeers, pc] of peerConnections.current) {
         pc.onicecandidate = event => {
+          console.log('ice candidate created', emailOfPeers);
+
           if (event.candidate && remoteEmailId) {
             socket.emit('ice_candidate', {
               email_id: emailOfPeers,
               myEmail: email,
-              rood_id: roomId,
+              room_id: roomId,
               candidate: event.candidate,
             });
 

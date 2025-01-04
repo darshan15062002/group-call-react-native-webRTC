@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
         socket.to(socketId).emit("call_accepted", { ans, fromEmail: myEmail })
 
         console.log(
-            '============================ call accepted by old user   ======================================',
+            '============================ call accepted by new user   ======================================',
             myEmail,
         );
 

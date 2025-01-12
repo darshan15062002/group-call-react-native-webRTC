@@ -1,5 +1,5 @@
-import {useState, useEffect, useRef} from 'react';
-import {io, Socket} from 'socket.io-client';
+import { useState, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
 
 export const useSocketConnection = (
   handleNewUserJoin: (data: any) => void,
@@ -10,7 +10,7 @@ export const useSocketConnection = (
 
   useEffect(() => {
     // const _socket = io('https://ice-server-socket.onrender.com');
-const _socket = io("http://192.168.0.110:8000")
+    const _socket = io("http://192.168.0.116:8000")
 
     setSocket(_socket);
 

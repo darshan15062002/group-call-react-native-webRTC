@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   mediaDevices,
   MediaStream,
@@ -6,12 +6,12 @@ import {
   RTCPeerConnection,
   RTCSessionDescription,
 } from 'react-native-webrtc';
-import {io, Socket} from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
-import {Alert, SafeAreaView} from 'react-native';
+import { Alert, SafeAreaView } from 'react-native';
 import VideoStreamView from '../components/VideoStreamView';
 import CallControls from '../components/CallControls';
-import {useUser} from '../hook/useUser';
+import { useUser } from '../hook/useUser';
 
 const configuration = {
   iceServers: [
@@ -27,9 +27,9 @@ const configuration = {
   ],
   iceCandidatePoolSize: 10,
 };
-const VideoCallScreen = ({route, navigation}: any) => {
-  const {user} = useUser();
-  const {email, roomId, self} = route.params;
+const VideoCallScreen = ({ route, navigation }: any) => {
+  const { user } = useUser();
+  const { email, roomId, self } = route.params;
   const [socket, setSocket] = useState<Socket | null>(null);
   const [roomJoin, setRoomJoin] = useState('');
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -59,7 +59,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
       let _socket = socket;
 
       if (!_socket) {
-        _socket = io('http://192.168.0.110:8000');
+        _socket = io('http://192.168.0.116:8000');
 
         setSocket(_socket);
       }
@@ -90,17 +90,22 @@ const VideoCallScreen = ({route, navigation}: any) => {
   // when there is new user with same code on server this even trigger
   // we create offer and send buy socket newly arrived user
   const createOffer = async (pc: any) => {
-    if (!peerConnections.current) return;
+
     try {
       const offer = await pc.createOffer({});
+      if (!offer.sdp) {
+        throw new Error('Created offer has no SDP');
+      }
+
       await pc.setLocalDescription(offer);
       console.log(
         '============================ offer created ======================================',
       );
-      return offer;
+      return offer
+
     } catch (error) {
       console.error('Error creating offer:', error);
-      // Handle error appropriately
+
     }
   };
 
@@ -109,6 +114,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
 
     // Set up ice candidate handler
     pc.onicecandidate = event => {
+      console.log('Ice candidate created for:', remoteEmail);
       if (event.candidate && socket) {
         console.log('Ice candidate created for:', remoteEmail);
         socket.emit('ice_candidate', {
@@ -119,10 +125,32 @@ const VideoCallScreen = ({route, navigation}: any) => {
         });
       }
     };
+    pc.onicegatheringstatechange = () => {
+      console.log('ICE gathering state:', pc.iceGatheringState);
+    };
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state changed:', pc.connectionState);
+      switch (pc.connectionState) {
+        case 'connected':
+          console.log('Peers connected successfully');
+          break;
+        case 'disconnected':
+          console.log('Peers disconnected');
+          break;
+        case 'failed':
+          console.log('Connection failed');
+          handleEndCall();
+          break;
+      }
+    };
 
     // Handle incoming tracks
-    pc.ontrack = event => {
-      const [remoteStream] = event.streams;
+    pc.ontrack = (event: any) => {
+
+      let remoteStream = new MediaStream()
+      event.stream[0].getTracks().forEach((track: any) => {
+        remoteStream.addTrack(track)
+      })
       if (remoteStream) {
         console.log('Received remote stream from:', remoteEmail);
         setRemoteStreams(prev => new Map(prev.set(remoteEmail, remoteStream)));
@@ -132,18 +160,19 @@ const VideoCallScreen = ({route, navigation}: any) => {
     // Add local stream tracks
     if (stream) {
       stream.getTracks().forEach(track => {
+        console.log('Adding track:', track.kind, track.enabled);
         pc.addTrack(track, stream);
       });
     }
-
     peerConnections.current.set(remoteEmail, pc);
     return pc;
   };
 
-  const handleNewUserJoin = async ({participant_email}: any) => {
+  const handleNewUserJoin = async ({ participant_email }: any) => {
     console.log('New user joined:', participant_email);
-    const pc = createPeerConnection(participant_email);
     if (socket) {
+      const pc = createPeerConnection(participant_email);
+
       const offer = await createOffer(pc);
       console.log('new USer Arrive ');
       socket.emit('call_user', {
@@ -152,7 +181,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
         myEmail: email,
         offer,
       });
-      setRemoteEmailId(participant_email);
+      // setRemoteEmailId(participant_email);
     }
     console.log(
       '============================ new USer Arrive ======================================',
@@ -171,16 +200,24 @@ const VideoCallScreen = ({route, navigation}: any) => {
       const offerDescription = new RTCSessionDescription(offer);
       await pc.setRemoteDescription(offerDescription);
       const answerDescription = await pc.createAnswer();
+      if (!answerDescription.sdp) {
+        throw new Error('Created answer has no SDP')
+      }
+      console.log('Setting local description for answer');
       await pc.setLocalDescription(answerDescription);
 
-      return answerDescription;
+
+
+      console.log('Answer created with gathered candidates');
+      return answerDescription
+
     } catch (error) {
       console.error('Error creating ans:', error);
     }
   };
   const handleIncommingCall = async (data: any) => {
     if (socket) {
-      const {fromEmail, offer} = data;
+      const { fromEmail, offer } = data;
       const pc = createPeerConnection(fromEmail);
       const ans = await createAns(offer, pc);
 
@@ -203,7 +240,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
   // --------------------------------------------------------------------------------------
   // when call accepted user Receive the ans of offer
   // set to there remote description
-  const handleCallAccepted = async ({ans, fromEmail}: any) => {
+  const handleCallAccepted = async ({ ans, fromEmail }: any) => {
     try {
       const pc = peerConnections.current.get(fromEmail);
       if (pc) {
@@ -238,18 +275,10 @@ const VideoCallScreen = ({route, navigation}: any) => {
         }
       };
 
-      const handleRoomJoined = (data: RoomJoinedData) => {
-        setRoomJoin(data.room_id);
-        setEventMessage('');
-        startStream();
-      };
 
-      socket.on('joined_room', handleRoomJoined);
+      startStream();
 
-      return () => {
-        socket.off('joined_room', handleRoomJoined);
-        socket.disconnect(); // Ensure proper disconnection
-      };
+
     }
   }, [socket]);
   // --------------------------------------------------------------------------------------
@@ -278,7 +307,7 @@ const VideoCallScreen = ({route, navigation}: any) => {
     }
   }, [socket]);
 
-  const handleIceCandidate = async ({myEmail, fromEmail, candidate}: any) => {
+  const handleIceCandidate = async ({ myEmail, fromEmail, candidate }: any) => {
     try {
       const pc = peerConnections.current.get(fromEmail);
       if (pc && candidate) {
@@ -318,61 +347,61 @@ const VideoCallScreen = ({route, navigation}: any) => {
   };
   const handleHagout = () => {
     if (peerConnections.current && socket) {
-      socket.emit('end-call', {room_id: roomId});
+      socket.emit('end-call', { room_id: roomId });
       handleEndCall();
     }
   };
 
-  useEffect(() => {
-    if (socket && peerConnections.current) {
-      for (const [emailOfPeers, pc] of peerConnections.current) {
-        pc.onicecandidate = event => {
-          console.log('ice candidate created', emailOfPeers);
+  // useEffect(() => {
+  //   if (socket && peerConnections.current) {
+  //     for (const [emailOfPeers, pc] of peerConnections.current) {
+  //       pc.onicecandidate = event => {
+  //         console.log('ice candidate created', emailOfPeers);
 
-          if (event.candidate && remoteEmailId) {
-            socket.emit('ice_candidate', {
-              email_id: emailOfPeers,
-              myEmail: email,
-              room_id: roomId,
-              candidate: event.candidate,
-            });
+  //         if (event.candidate && remoteEmailId) {
+  //           socket.emit('ice_candidate', {
+  //             email_id: emailOfPeers,
+  //             myEmail: email,
+  //             room_id: roomId,
+  //             candidate: event.candidate,
+  //           });
 
-            console.log(
-              '============================ ice candidated  created and sended   ======================================',
-              emailOfPeers,
-            );
-          }
-        };
+  //           console.log(
+  //             '============================ ice candidated  created and sended   ======================================',
+  //             emailOfPeers,
+  //           );
+  //         }
+  //       };
 
-        pc.ontrack = event => {
-          const [remoteStream] = event.streams;
+  //       pc.ontrack = event => {
+  //         const [remoteStream] = event.streams;
 
-          if (remoteStream) {
-            setRemoteStreams(
-              prev => new Map(prev.set(emailOfPeers, remoteStream)),
-            );
-          }
-        };
+  //         if (remoteStream) {
+  //           setRemoteStreams(
+  //             prev => new Map(prev.set(emailOfPeers, remoteStream)),
+  //           );
+  //         }
+  //       };
 
-        pc.onconnectionstatechange = () => {
-          const connectionState = pc.connectionState;
+  //       pc.onconnectionstatechange = () => {
+  //         const connectionState = pc.connectionState;
 
-          if (connectionState === 'connected') {
-            console.log('Peers connected');
-          } else if (
-            connectionState === 'disconnected' ||
-            connectionState === 'failed'
-          ) {
-            console.log('Connection failed or disconnected');
-          }
-        };
-      }
-    }
-  }, [socket, peerConnections.current]);
+  //         if (connectionState === 'connected') {
+  //           console.log('Peers connected');
+  //         } else if (
+  //           connectionState === 'disconnected' ||
+  //           connectionState === 'failed'
+  //         ) {
+  //           console.log('Connection failed or disconnected');
+  //         }
+  //       };
+  //     }
+  //   }
+  // }, [socket, peerConnections.current]);
 
   useEffect(() => {
     // const _socket = io('https://ice-server-socket.onrender.com');
-    const _socket = io('http://192.168.0.110:8000');
+    const _socket = io('http://192.168.0.116:8000');
     // _socket.emit('set-status', {code});
     setSocket(_socket);
   }, []);

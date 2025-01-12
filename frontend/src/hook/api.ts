@@ -1,11 +1,11 @@
 import axios from "axios";
 
 // const server = "https://ice-server-socket.onrender.com/api/v1"
-const server = "http://192.168.0.110:8000/api/v1"
+const server = "http://192.168.0.116:8000/api/v1"
 export const loadUser = async () => {
     try {
 
-    
+
 
 
         // Axios
@@ -16,14 +16,14 @@ export const loadUser = async () => {
 
 
         return res.data
-    } catch (error:any) {
- 
+    } catch (error: any) {
+
         return error.response
     }
 
 }
 
-export const login = async (phone:string, password:string) => {
+export const login = async (phone: string, password: string) => {
     try {
 
         // Axios
@@ -41,7 +41,7 @@ export const login = async (phone:string, password:string) => {
         return res.data
 
     } catch (error) {
-       
+
         return error.response.data.message
 
     }
@@ -59,16 +59,16 @@ export const loadUserList = async () => {
 
         return res.data
     } catch (error) {
-      
+
         return error.response.data
     }
 
 }
 
-export const sendTokenToServer = async (token:string) => {
+export const sendTokenToServer = async (token: string) => {
     try {
 
-       
+
         const res = await axios.post(`${server}/save-token`,
             { token }, {
             headers: {
@@ -77,7 +77,7 @@ export const sendTokenToServer = async (token:string) => {
             "withCredentials": true
         }
         );
-     
+
     } catch (error) {
         console.error('Failed to send device token to server:', error);
     }

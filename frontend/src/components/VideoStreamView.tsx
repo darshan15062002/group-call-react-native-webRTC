@@ -13,7 +13,7 @@ const VideoStreamView: React.FC<VideoStreamViewProps> = ({
   remoteStreams,
   localWebcamOn,
 }) => {
-  const remoteStreamsArray = Array.from(remoteStreams.entries());
+
 
   return (
     <View style={styles.container}>
@@ -31,7 +31,7 @@ const VideoStreamView: React.FC<VideoStreamViewProps> = ({
       {remoteStreams.size > 0 && (
         <View style={styles.gridContainer}>
           {/* Grid of remote streams */}
-          {remoteStreamsArray.map(([peerId, remoteStream]) => (
+          {Array.from(remoteStreams).map(([peerId, remoteStream]) => (
             <View
               key={peerId}
               style={[
@@ -42,7 +42,7 @@ const VideoStreamView: React.FC<VideoStreamViewProps> = ({
                 remoteStreams.size > 2 && styles.quarterScreen,
               ]}>
               <RTCView
-                streamURL={remoteStream.toURL()}
+                streamURL={remoteStream?.toURL()}
                 style={styles.fullScreenVideo}
                 objectFit={'cover'}
                 mirror={false}

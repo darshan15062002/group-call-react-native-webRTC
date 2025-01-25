@@ -10,7 +10,7 @@ export const useSocketConnection = (
 
   useEffect(() => {
     // const _socket = io('https://ice-server-socket.onrender.com');
-    const _socket = io("http://192.168.0.116:8000")
+    const _socket = io("https://group-call-react-native-webrtc.onrender.com")
 
     setSocket(_socket);
 

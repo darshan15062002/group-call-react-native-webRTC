@@ -30,10 +30,7 @@ admin.initializeApp({
 });
 
 
-mongoose.connect("mongodb+srv://darshan:$$dar$$123@cluster0.ohxhu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => {
+mongoose.connect(process.env.MONGO_URL).then(() => {
     console.log('Connected to MongoDB');
 }).catch(err => {
     console.error('Error connecting to MongoDB:', err);

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // const server = "https://ice-server-socket.onrender.com/api/v1"
-const server = "http://192.168.0.116:8000/api/v1"
+const server = "https://group-call-react-native-webrtc.onrender.com/api/v1"
 export const loadUser = async () => {
     try {
 

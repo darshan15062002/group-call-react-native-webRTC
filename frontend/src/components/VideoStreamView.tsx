@@ -1,6 +1,6 @@
 import React from 'react';
-import {MediaStream, RTCView} from 'react-native-webrtc';
-import {View, StyleSheet} from 'react-native';
+import { MediaStream, RTCView } from 'react-native-webrtc';
+import { View, StyleSheet } from 'react-native';
 
 interface VideoStreamViewProps {
   stream: MediaStream | null;
@@ -13,6 +13,7 @@ const VideoStreamView: React.FC<VideoStreamViewProps> = ({
   remoteStreams,
   localWebcamOn,
 }) => {
+  console.log(remoteStreams.size, 'remoteStreams.size');
 
 
   return (
@@ -94,9 +95,9 @@ const styles = StyleSheet.create({
     height: 150,
     width: 100,
     position: 'absolute',
-    top: 20,
+    bottom: 100,
     right: 20,
-    zIndex: 1,
+    zIndex: 10,
     borderRadius: 8,
     overflow: 'hidden',
   },

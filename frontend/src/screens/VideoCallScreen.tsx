@@ -10,6 +10,7 @@ import { io, Socket } from "socket.io-client";
 import { Alert, SafeAreaView } from "react-native";
 import VideoStreamView from "../components/VideoStreamView";
 import CallControls from "../components/CallControls";
+import { View } from "react-native";
 
 const configuration = {
   iceServers: [
@@ -28,12 +29,14 @@ const configuration = {
 
 const VideoCallScreen = ({ route, navigation }: any) => {
   const { email, roomId, self } = route.params;
+  console.log(email, roomId, self, 'email, roomId, self');
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(
     new Map()
   );
+
   const [localMicOn, setLocalMicOn] = useState(true);
   const [localWebcamOn, setLocalWebcamOn] = useState(true);
 
@@ -141,6 +144,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     Alert.alert(data.message);
     handleEndCall();
   };
+
 
 
 
@@ -261,22 +265,31 @@ const VideoCallScreen = ({ route, navigation }: any) => {
   }, [stream]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+    <SafeAreaView style={{
+      flex: 1,
+      backgroundColor: '#212121',
+    }} onPress={() => setIsVisible((prev) => !prev)}>
+
       <VideoStreamView
+
         stream={stream}
         remoteStreams={remoteStreams}
         localWebcamOn={localWebcamOn}
       />
+
       <CallControls
         localMicOn={localMicOn}
         localWebcamOn={localWebcamOn}
         toggleMic={toggleMic}
         toggleCamera={toggleCamera}
+        joinLink={`https://videocall.com/video-call/${email}/${roomId}`}
         handleHangout={() => {
           socket?.emit("end-call", { room_id: roomId });
           handleEndCall();
         }}
+
       />
+
     </SafeAreaView>
   );
 };

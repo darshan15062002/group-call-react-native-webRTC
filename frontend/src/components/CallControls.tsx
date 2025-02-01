@@ -1,5 +1,5 @@
-import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Clipboard, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 
@@ -9,6 +9,7 @@ interface CallControlsProps {
   toggleMic: () => void;
   toggleCamera: () => void;
   handleHangout: () => void;
+  joinLink: string;
 }
 
 const CallControls: React.FC<CallControlsProps> = ({
@@ -17,7 +18,14 @@ const CallControls: React.FC<CallControlsProps> = ({
   toggleMic,
   toggleCamera,
   handleHangout,
+  joinLink,
 }) => {
+  const [showJoinLink, setShowJoinLink] = useState(false);
+
+  const copyToClipboard = (text) => {
+    Clipboard.setString(text); // Copy text to clipboard
+    ToastAndroid.show("Link copied!", ToastAndroid.SHORT); // Show confirmation
+  };
   return (
     <View
       style={{
@@ -25,6 +33,7 @@ const CallControls: React.FC<CallControlsProps> = ({
         width: '100%',
         position: 'absolute',
         bottom: 0,
+        zIndex: 100,
         backgroundColor: 'black',
         opacity: 0.7,
         borderTopLeftRadius: 30,
@@ -34,6 +43,45 @@ const CallControls: React.FC<CallControlsProps> = ({
         justifyContent: 'space-around',
         paddingHorizontal: 20,
       }}>
+      {showJoinLink && (
+        <View
+          style={{
+            position: "absolute",
+            top: -60,
+            flexDirection: "row",
+            gap: 10,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            backgroundColor: "#222",
+            borderRadius: 12,
+            alignItems: "center",
+            justifyContent: "space-between",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 5,
+          }}
+        >
+          <Text style={{ color: "white", fontSize: 14, maxWidth: 200 }}>
+            {joinLink}
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              copyToClipboard(joinLink);
+              setShowJoinLink(false)
+            }}
+            style={{
+              padding: 6,
+              backgroundColor: "#333",
+              borderRadius: 8,
+            }}
+          >
+            <Icon name="copy" size={18} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <TouchableOpacity onPress={toggleMic}>
         <Icon
           name={localMicOn ? 'microphone' : 'microphone-slash'}
@@ -61,8 +109,8 @@ const CallControls: React.FC<CallControlsProps> = ({
         <Icon name="phone" size={30} color="white" />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => {}}>
-        <Icon name="ellipsis-v" size={30} color="white" />
+      <TouchableOpacity onPress={() => { setShowJoinLink((prev) => !prev) }}>
+        <Icon name="share" size={30} color="white" />
       </TouchableOpacity>
     </View>
   );

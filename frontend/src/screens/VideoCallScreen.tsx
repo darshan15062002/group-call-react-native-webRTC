@@ -37,7 +37,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(
     new Map()
   );
-  const [isFrontCamera, setIsFrontCamera] = useState<boolean>(true)
+
   const [speakerOn, setSpeakerOn] = useState(true);
   const [localMicOn, setLocalMicOn] = useState(true);
   const [localWebcamOn, setLocalWebcamOn] = useState(true);
@@ -51,7 +51,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
       try {
         // Access camera and microphone
         const newStream = await mediaDevices.getUserMedia({
-          video: { facingMode: isFrontCamera ? "user" : "environment" },
+          video: { facingMode: "user" },
           audio: true,
         });
         setStream(newStream);
@@ -71,7 +71,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     };
 
     initializeCall();
-  }, [isFrontCamera]);
+  }, []);
 
   useEffect(() => {
     const backAction = () => {
@@ -128,12 +128,13 @@ const VideoCallScreen = ({ route, navigation }: any) => {
       if (self) {
         socket.emit("create_group_call", { room_id: roomId, email_id: email, self });
       } else {
-        const uniqueId = Math.random().toString(36).substring(2, 8);
+
         socket.emit("join_group_call", {
           room_id: roomId,
-          participant_email: `user_${uniqueId}`,
-          self,
+          participant_email: email,
+          self: false,
         });
+
       }
     }
   }, [socket, email, roomId, self]);
@@ -235,6 +236,8 @@ const VideoCallScreen = ({ route, navigation }: any) => {
 
   /** Handle incoming ICE candidates */
   const handleIceCandidate = async ({ fromEmail, candidate }: any) => {
+    console.log("icedbvjhsdbhjf");
+
     const pc = peerConnections.current.get(fromEmail);
     if (pc) {
       if (pc.remoteDescription) {
@@ -304,16 +307,20 @@ const VideoCallScreen = ({ route, navigation }: any) => {
   }, [stream]);
 
   const toggleSpeaker = useCallback(() => {
-    inCallManager.start({ media: "audio" });
-    inCallManager.setSpeakerphoneOn(speakerOn);
-    setSpeakerOn((prev) => !prev);
+    setSpeakerOn((prev) => {
+      if (prev) {
+        inCallManager.stop();
+        inCallManager.setSpeakerphoneOn(false);
+      } else {
+        // When turning speaker on
+        inCallManager.start({ media: "audio" });
+        inCallManager.setSpeakerphoneOn(true);
+      }
+      return !prev;
+    });
   }, []);
 
-  // const switchCamera = useCallback(() => {
-  //   console.log("sdfsdf");
 
-  //   setIsFrontCamera((prev: boolean) => !prev)
-  // }, [stream])
 
   return (
     <SafeAreaView style={{

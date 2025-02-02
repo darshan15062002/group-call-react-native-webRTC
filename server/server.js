@@ -166,9 +166,17 @@ io.on('connection', (socket) => {
 
 
     socket.on("end-call", ({ room_id }) => {
-        console.log("call end", room_id);
-
-
+        console.log("call end", room_id, email);
+        const room = activeRooms.get(room_id);
+        if (room.creator === email) {
+            console.log("call_ended end", room_id);
+            socket.broadcast.to(room_id).emit("call_ended", { message: "Call has ended." });
+        } else {
+            const socketId = room?.participants.get(email_id)?.socketId
+            if (socketId) {
+                socket.to(socketId).emit("call_ended", { message: "Call has ended." });
+            }
+        }
 
         if (room_id) {
             console.log("call_ended end", room_id);

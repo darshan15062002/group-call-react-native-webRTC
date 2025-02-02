@@ -37,6 +37,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(
     new Map()
   );
+  const [isFrontCamera,setIsFrontCamera] = useState<boolean>(true)
   const [speakerOn, setSpeakerOn] = useState(false);
   const [localMicOn, setLocalMicOn] = useState(true);
   const [localWebcamOn, setLocalWebcamOn] = useState(true);
@@ -50,7 +51,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
       try {
         // Access camera and microphone
         const newStream = await mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
+          video: { facingMode: isFrontCamera?"user":"environment" },
           audio: true,
         });
         setStream(newStream);
@@ -70,7 +71,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     };
 
     initializeCall();
-  }, []);
+  }, [isFrontCamera]);
 
   /** Configure socket event listeners */
   useEffect(() => {
@@ -262,18 +263,24 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     });
   }, [stream]);
 
-  const switchCamera = useCallback(() => {
-    stream?.getVideoTracks().forEach((track) => {
-      // @ts-ignore: React Native WebRTC-specific method
-      track._switchCamera();
-    });
-  }, [stream]);
+  // const switchCamera = useCallback(() => {
+  //   stream?.getVideoTracks().forEach((track) => {
+  //     // @ts-ignore: React Native WebRTC-specific method
+  //     track._switchCamera();
+  //   });
+  // }, [stream]);
 
   const toggleSpeaker = useCallback(() => {
     inCallManager.start({ media: "audio" });
     inCallManager.setSpeakerphoneOn(true);
     setSpeakerOn((prev) => !prev);
   }, []);
+
+const switchCamera = useCallback(()=>{
+  console.log("sdfsdf");
+  
+setIsFrontCamera((prev:boolean)=>!prev)
+},[stream])
 
   return (
     <SafeAreaView style={{
@@ -291,6 +298,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
       <CallControls
         localMicOn={localMicOn}
         localWebcamOn={localWebcamOn}
+        switchCamera={switchCamera}
         toggleMic={toggleMic}
         toggleCamera={toggleCamera}
         toggleSpeaker={toggleSpeaker}

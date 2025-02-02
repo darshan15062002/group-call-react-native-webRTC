@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Clipboard, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
+import Icon5 from 'react-native-vector-icons/FontAwesome6';
 
 interface CallControlsProps {
   localMicOn: boolean;
@@ -11,6 +12,7 @@ interface CallControlsProps {
   toggleCamera: () => void;
   handleHangout: () => void;
   toggleSpeaker: () => void;
+  switchCamera:()=>void;
   joinLink: string;
 }
 
@@ -21,6 +23,7 @@ const CallControls: React.FC<CallControlsProps> = ({
   toggleSpeaker,
   toggleCamera,
   handleHangout,
+  switchCamera,
   speakerOn,
   joinLink,
 }) => {
@@ -104,6 +107,13 @@ const CallControls: React.FC<CallControlsProps> = ({
       <TouchableOpacity onPress={toggleCamera}>
         <Feather
           name={localWebcamOn ? 'camera' : 'camera-off'}
+          size={30}
+          color="white"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={switchCamera}>
+        <Icon5
+          name={"camera-rotate"}
           size={30}
           color="white"
         />

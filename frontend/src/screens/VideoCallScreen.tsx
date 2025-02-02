@@ -38,7 +38,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     new Map()
   );
   const [isFrontCamera, setIsFrontCamera] = useState<boolean>(true)
-  const [speakerOn, setSpeakerOn] = useState(false);
+  const [speakerOn, setSpeakerOn] = useState(true);
   const [localMicOn, setLocalMicOn] = useState(true);
   const [localWebcamOn, setLocalWebcamOn] = useState(true);
 
@@ -128,9 +128,10 @@ const VideoCallScreen = ({ route, navigation }: any) => {
       if (self) {
         socket.emit("create_group_call", { room_id: roomId, email_id: email, self });
       } else {
+        const uniqueId = Math.random().toString(36).substring(2, 8);
         socket.emit("join_group_call", {
           room_id: roomId,
-          participant_email: email,
+          participant_email: `user_${uniqueId}`,
           self,
         });
       }
@@ -304,7 +305,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
 
   const toggleSpeaker = useCallback(() => {
     inCallManager.start({ media: "audio" });
-    inCallManager.setSpeakerphoneOn(true);
+    inCallManager.setSpeakerphoneOn(speakerOn);
     setSpeakerOn((prev) => !prev);
   }, []);
 

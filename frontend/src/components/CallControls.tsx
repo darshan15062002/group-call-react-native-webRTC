@@ -12,7 +12,7 @@ interface CallControlsProps {
   toggleCamera: () => void;
   handleHangout: () => void;
   toggleSpeaker: () => void;
-  switchCamera:()=>void;
+  switchCamera: () => void;
   joinLink: string;
 }
 
@@ -98,7 +98,7 @@ const CallControls: React.FC<CallControlsProps> = ({
       </TouchableOpacity>
       <TouchableOpacity onPress={toggleSpeaker}>
         <Feather
-          name={speakerOn ? 'volume-2' : 'volume'}
+          name={speakerOn ? 'volume-2' : 'volume-x'}
           size={30}
           color="white"
         />

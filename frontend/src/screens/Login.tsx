@@ -19,26 +19,24 @@ function Login({ navigation }: any): React.JSX.Element {
 
   const handleMakeConnection = (isSelf: boolean) => {
     // Validate inputs before navigating
-    if (!isSelf && !email.trim()) {
-      alert('Please enter an email');
-      return;
-    }
+    // if (!isSelf && !email.trim()) {
+    //   alert('Please enter an email');
+    //   return;
+    // }
 
     if (!isSelf && !roomId.trim()) {
       alert('Please enter a Room ID');
       return;
     }
-    let uniqueId = null
-    if (isSelf) {
-      uniqueId = Math.random().toString(36).substring(2, 8);
-    }
+
+    const uniqueId = Math.random().toString(36).substring(2, 8);
 
     !isSelf && setIsLoading(true);
 
     setTimeout(() => {
       setIsLoading(false);
       navigation.navigate('VideoCall', {
-        email: isSelf ? `user_${uniqueId}` : email,
+        email: `user_${uniqueId}`,
         roomId: isSelf ? uniqueId : roomId,
         self: isSelf,
       });
@@ -79,7 +77,7 @@ function Login({ navigation }: any): React.JSX.Element {
           <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 20, borderBottomColor: '#fff', borderBottomWidth: 1, width: '90%' }} />
 
 
-          <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Enter your name"
             placeholderTextColor="#aaa"
@@ -87,7 +85,7 @@ function Login({ navigation }: any): React.JSX.Element {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-          />
+          /> */}
 
           <TextInput
             style={styles.input}

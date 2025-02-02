@@ -168,7 +168,7 @@ io.on('connection', (socket) => {
     socket.on("end-call", ({ room_id, email }) => {
         console.log("call end", room_id, email);
         const room = activeRooms.get(room_id);
-        if (room.creator === email) {
+        if (room?.creator === email) {
             console.log("call_ended end", room_id);
             activeRooms.delete(email)
             socket.broadcast.to(room_id).emit("call_ended", { message: "Call has ended." });

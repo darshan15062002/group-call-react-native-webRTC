@@ -6,9 +6,11 @@ import Feather from 'react-native-vector-icons/Feather';
 interface CallControlsProps {
   localMicOn: boolean;
   localWebcamOn: boolean;
+  speakerOn: boolean;
   toggleMic: () => void;
   toggleCamera: () => void;
   handleHangout: () => void;
+  toggleSpeaker: () => void;
   joinLink: string;
 }
 
@@ -16,8 +18,10 @@ const CallControls: React.FC<CallControlsProps> = ({
   localMicOn,
   localWebcamOn,
   toggleMic,
+  toggleSpeaker,
   toggleCamera,
   handleHangout,
+  speakerOn,
   joinLink,
 }) => {
   const [showJoinLink, setShowJoinLink] = useState(false);
@@ -85,6 +89,13 @@ const CallControls: React.FC<CallControlsProps> = ({
       <TouchableOpacity onPress={toggleMic}>
         <Icon
           name={localMicOn ? 'microphone' : 'microphone-slash'}
+          size={30}
+          color="white"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={toggleSpeaker}>
+        <Feather
+          name={speakerOn ? 'volume-2' : 'volume'}
           size={30}
           color="white"
         />

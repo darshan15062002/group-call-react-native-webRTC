@@ -11,6 +11,7 @@ import { Alert, SafeAreaView } from "react-native";
 import VideoStreamView from "../components/VideoStreamView";
 import CallControls from "../components/CallControls";
 import { View } from "react-native";
+import inCallManager from "react-native-incall-manager";
 
 const configuration = {
   iceServers: [
@@ -36,7 +37,7 @@ const VideoCallScreen = ({ route, navigation }: any) => {
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(
     new Map()
   );
-
+  const [speakerOn, setSpeakerOn] = useState(false);
   const [localMicOn, setLocalMicOn] = useState(true);
   const [localWebcamOn, setLocalWebcamOn] = useState(true);
 
@@ -239,8 +240,12 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     stream?.getTracks().forEach((track) => track.stop());
     setStream(null);
     setRemoteStreams(new Map());
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Login');
+    }
 
-    navigation.goBack();
   };
 
   const toggleMic = useCallback(() => {
@@ -264,6 +269,12 @@ const VideoCallScreen = ({ route, navigation }: any) => {
     });
   }, [stream]);
 
+  const toggleSpeaker = useCallback(() => {
+    inCallManager.start({ media: "audio" });
+    inCallManager.setSpeakerphoneOn(true);
+    setSpeakerOn((prev) => !prev);
+  }, []);
+
   return (
     <SafeAreaView style={{
       flex: 1,
@@ -282,6 +293,8 @@ const VideoCallScreen = ({ route, navigation }: any) => {
         localWebcamOn={localWebcamOn}
         toggleMic={toggleMic}
         toggleCamera={toggleCamera}
+        toggleSpeaker={toggleSpeaker}
+        speakerOn={speakerOn}
         joinLink={`https://videocall.com/video-call/${email}/${roomId}`}
         handleHangout={() => {
           socket?.emit("end-call", { room_id: roomId });

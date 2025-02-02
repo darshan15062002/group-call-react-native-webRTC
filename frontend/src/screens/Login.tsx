@@ -35,22 +35,22 @@ function Login({ navigation }: any): React.JSX.Element {
 
     !isSelf && setIsLoading(true);
 
-    // setTimeout(() => {
-    //   setIsLoading(false);
-    //   navigation.navigate('VideoCall', {
-    //     email: isSelf ? `user_${uniqueId}` : email,
-    //     roomId: isSelf ? uniqueId : roomId,
-    //     self: isSelf,
-    //   });
-    // }, 500);
     setTimeout(() => {
       setIsLoading(false);
       navigation.navigate('VideoCall', {
-        email: email,
-        roomId: roomId,
+        email: isSelf ? `user_${uniqueId}` : email,
+        roomId: isSelf ? uniqueId : roomId,
         self: isSelf,
       });
     }, 500);
+    // setTimeout(() => {
+    //   setIsLoading(false);
+    //   navigation.navigate('VideoCall', {
+    //     email: email,
+    //     roomId: roomId,
+    //     self: isSelf,
+    //   });
+    // }, 500);
 
   };
 

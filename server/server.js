@@ -170,6 +170,7 @@ io.on('connection', (socket) => {
         const room = activeRooms.get(room_id);
         if (room.creator === email) {
             console.log("call_ended end", room_id);
+            activeRooms.delete(email)
             socket.broadcast.to(room_id).emit("call_ended", { message: "Call has ended." });
         } else {
             const socketId = room?.participants.get(email)?.socketId

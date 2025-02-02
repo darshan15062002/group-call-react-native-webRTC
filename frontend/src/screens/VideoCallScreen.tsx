@@ -81,7 +81,13 @@ const VideoCallScreen = ({ route, navigation }: any) => {
           onPress: () => null,
           style: 'cancel',
         },
-        { text: 'YES', onPress: () => BackHandler.exitApp() },
+        {
+          text: 'YES', onPress: () => {
+            socket?.emit("end-call", { room_id: roomId, email });
+            handleEndCall()
+            BackHandler.exitApp()
+          }
+        },
       ]);
       return true;
     };

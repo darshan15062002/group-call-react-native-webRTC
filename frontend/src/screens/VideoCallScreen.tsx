@@ -7,7 +7,7 @@ import {
   RTCSessionDescription,
 } from "react-native-webrtc";
 import { io, Socket } from "socket.io-client";
-import { Alert, SafeAreaView } from "react-native";
+import { Alert, BackHandler, SafeAreaView } from "react-native";
 import VideoStreamView from "../components/VideoStreamView";
 import CallControls from "../components/CallControls";
 import { View } from "react-native";
@@ -72,6 +72,28 @@ const VideoCallScreen = ({ route, navigation }: any) => {
 
     initializeCall();
   }, [isFrontCamera]);
+
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert('Hold on!', 'Are you sure you want to leave the call?', [
+        {
+          text: 'Cancel',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: 'YES', onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
 
   /** Configure socket event listeners */
   useEffect(() => {

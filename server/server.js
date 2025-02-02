@@ -172,16 +172,13 @@ io.on('connection', (socket) => {
             console.log("call_ended end", room_id);
             socket.broadcast.to(room_id).emit("call_ended", { message: "Call has ended." });
         } else {
-            const socketId = room?.participants.get(email_id)?.socketId
+            const socketId = room?.participants.get(email)?.socketId
             if (socketId) {
                 socket.to(socketId).emit("call_ended", { message: "Call has ended." });
             }
         }
 
-        if (room_id) {
-            console.log("call_ended end", room_id);
-            socket.broadcast.to(room_id).emit("call_ended", { message: "Call has ended." });
-        }
+
     });
 
     // **Add ICE Candidate Exchange Handling Here**

@@ -165,7 +165,7 @@ io.on('connection', (socket) => {
     })
 
 
-    socket.on("end-call", ({ room_id }) => {
+    socket.on("end-call", ({ room_id, email }) => {
         console.log("call end", room_id, email);
         const room = activeRooms.get(room_id);
         if (room.creator === email) {

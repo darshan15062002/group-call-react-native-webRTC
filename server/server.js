@@ -237,7 +237,7 @@ app.get('/token', (req, res) => {
 
     const jwt = at.toJwt();
     // You can also return the wsUrl from env if you want the client to have it:
-    res.json({ token: jwt, url: process.env.LIVEKIT_WS || null });
+    res.json({ token: jwt, url: process.env.LIVEKIT_URL || null });
 });
 
 

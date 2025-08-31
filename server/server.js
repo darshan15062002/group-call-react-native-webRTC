@@ -222,7 +222,7 @@ app.get("/", (req, res) => {
 })
 
 
-app.get('/token', (req, res) => {
+app.get('/token', async (req, res) => {
     const identity = req.query.identity || `user-${Math.random().toString(36).slice(2, 8)}`;
     const room = req.query.room || 'default-room';
     console.log('Generating token for:', identity, 'in room:', room);
@@ -237,7 +237,7 @@ app.get('/token', (req, res) => {
     // give join permission for this room
     at.addGrant({ roomJoin: true, room });
 
-    const jwt = at.toJwt();
+    const jwt = await at.toJwt();
     console.log('Generated Token:', jwt);
     console.log('URL:', process.env.LIVEKIT_URL);
 

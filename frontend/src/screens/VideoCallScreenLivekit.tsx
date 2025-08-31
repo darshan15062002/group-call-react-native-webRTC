@@ -27,7 +27,7 @@ const VideoCallScreenLivekit = ({ route, navigation }: any) => {
             try {
                 await AudioSession.startAudioSession(); // sets up native audio session
                 const resp = await fetch(`${BACKEND_TOKEN_ENDPOINT}?room=${encodeURIComponent(roomId)}&identity=${encodeURIComponent(email)}`);
-                console.log('Token response:', resp);
+                console.log('Token response:', await resp.json());
                 const { token, url } = await resp.json();
                 console.log('Token:', token);
                 console.log('URL:', url);

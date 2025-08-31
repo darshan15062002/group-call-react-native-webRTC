@@ -1,6 +1,6 @@
 // VideoCallScreen.livekit.tsx
 import React, { useEffect, useState, useRef } from 'react';
-import { SafeAreaView, View, Alert } from 'react-native';
+import { SafeAreaView, View, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { Room } from 'livekit-client';
 import { useRoom, VideoView, AudioSession, registerGlobals, log } from '@livekit/react-native';
 import { Track } from 'livekit-client';
@@ -21,24 +21,40 @@ const VideoCallScreenLivekit = ({ route, navigation }: any) => {
     const [speakerOn, setSpeakerOn] = useState(true);
     const facingUser = useRef(true); // for switchCamera
 
+    async function requestPermissions() {
+        if (Platform.OS === 'android') {
+            await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+            await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
+        }
+    }
+
+
     useEffect(() => {
         let mounted = true;
         const start = async () => {
             try {
                 await AudioSession.startAudioSession(); // sets up native audio session
                 const resp = await fetch(`${BACKEND_TOKEN_ENDPOINT}?room=${encodeURIComponent(roomId)}&identity=${encodeURIComponent(email)}`);
-                console.log('Token response:', await resp.json());
+                // console.log('Token response:', await resp.json());
                 const { token, url } = await resp.json();
                 console.log('Token:', token);
                 console.log('URL:', url);
                 const wsUrl = url || 'wss://group-call-f04zh1cl.livekit.cloud'; // prefer server-provided url or put your project url here
 
-                await room.connect(wsUrl, token, { autoSubscribe: true });
-                // enable mic + camera (creates and publishes tracks)
-                await room.localParticipant.setMicrophoneEnabled(true);
-                await room.localParticipant.setCameraEnabled(true);
+                console.log('Connecting to:', wsUrl, 'with token:', token);
+                await requestPermissions();
 
-                // optionally set attributes/metadata:
+                await room.connect(wsUrl, token, { autoSubscribe: true });
+
+
+                console.log('Room connected, enabling mic and camera...');
+
+                const micResult = await room.localParticipant.setMicrophoneEnabled(true);
+                console.log('Mic track created:', micResult);
+
+                const camResult = await room.localParticipant.setCameraEnabled(true);
+                console.log('Camera track created:', camResult);
+
                 await room.localParticipant.setMetadata(JSON.stringify({ email }));
 
             } catch (err) {

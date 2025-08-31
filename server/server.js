@@ -235,7 +235,10 @@ app.get('/token', async (req, res) => {
     );
 
     // give join permission for this room
-    at.addGrant({ roomJoin: true, room });
+    at.addGrant({
+        roomJoin: true, room, canPublish: true,
+        canSubscribe: true,
+    });
 
     const jwt = await at.toJwt();
     console.log('Generated Token:', jwt);

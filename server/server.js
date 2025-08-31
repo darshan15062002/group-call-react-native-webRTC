@@ -153,7 +153,7 @@ io.on('connection', (socket) => {
         if (!room) {
             socket.emit('call_error', { message: 'Room does not exist' });
         }
-        const socketId = room.participants.get(email_id).socketId
+        const socketId = room?.participants?.get(email_id).socketId
 
         socket.to(socketId).emit("call_accepted", { ans, fromEmail: myEmail })
 

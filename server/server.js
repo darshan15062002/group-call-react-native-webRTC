@@ -213,6 +213,7 @@ io.on('connection', (socket) => {
 const authRoute = require("./router/authRoute.js");
 const User = require('./model/userModel.js');
 const sendNotification = require('./utils/sendNotification.js');
+const { AccessToken } = require('livekit-server-sdk');
 
 // app.use("/api/v1/", authRoute)
 
@@ -220,6 +221,24 @@ app.get("/", (req, res) => {
     res.send("hello ")
 })
 
+
+app.get('/token', (req, res) => {
+    const identity = req.query.identity || `user-${Math.random().toString(36).slice(2, 8)}`;
+    const room = req.query.room || 'default-room';
+
+    const at = new AccessToken(
+        process.env.LIVEKIT_API_KEY,
+        process.env.LIVEKIT_API_SECRET,
+        { identity }
+    );
+
+    // give join permission for this room
+    at.addGrant({ roomJoin: true, room });
+
+    const jwt = at.toJwt();
+    // You can also return the wsUrl from env if you want the client to have it:
+    res.json({ token: jwt, url: process.env.LIVEKIT_WS || null });
+});
 
 
 

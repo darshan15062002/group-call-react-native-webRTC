@@ -225,6 +225,8 @@ app.get("/", (req, res) => {
 app.get('/token', (req, res) => {
     const identity = req.query.identity || `user-${Math.random().toString(36).slice(2, 8)}`;
     const room = req.query.room || 'default-room';
+    console.log('Generating token for:', identity, 'in room:', room);
+    console.log(process.env.LIVEKIT_API_KEY, process.env.LIVEKIT_API_SECRET);
 
     const at = new AccessToken(
         process.env.LIVEKIT_API_KEY,
@@ -236,7 +238,6 @@ app.get('/token', (req, res) => {
     at.addGrant({ roomJoin: true, room });
 
     const jwt = at.toJwt();
-    // You can also return the wsUrl from env if you want the client to have it:
     res.json({ token: jwt, url: process.env.LIVEKIT_URL || null });
 });
 

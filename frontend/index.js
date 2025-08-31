@@ -10,6 +10,9 @@ import { showIncomingCallNotification } from './src/localNotification/LocalNotif
 import RNNotificationCall from 'react-native-full-screen-notification-incoming-call';
 import { loadUser } from './src/hook/api';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
+import { registerGlobals } from '@livekit/react-native-webrtc';
+import 'react-native-url-polyfill/auto';
+
 
 notifee.onBackgroundEvent(async ({ type, detail }) => {
     if (type === EventType.ACTION_PRESS) {
@@ -56,6 +59,8 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
     }
 });
 
+
+registerGlobals();
 
 
 

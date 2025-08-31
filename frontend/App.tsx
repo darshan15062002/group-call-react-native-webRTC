@@ -6,6 +6,7 @@ import Login from './src/screens/Login';
 import VideoCallScreen from './src/screens/VideoCallScreen';
 
 import notifee, { AndroidImportance } from '@notifee/react-native';
+import VideoCallScreenLivekit from './src/screens/VideoCallScreenLivekit';
 
 
 const Stack = createStackNavigator();
@@ -16,9 +17,18 @@ function AppNavigator() {
       <Stack.Screen name="Login" component={Login} options={{
         headerShown: false,
       }} />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="VideoCall"
         component={VideoCallScreen}
+        options={{
+          headerShown: false,
+        }}
+        // Ensure email and roomId are passed as route params
+        initialParams={{ email: '', roomId: '' }}
+      /> */}
+      <Stack.Screen
+        name="VideoCall"
+        component={VideoCallScreenLivekit}
         options={{
           headerShown: false,
         }}

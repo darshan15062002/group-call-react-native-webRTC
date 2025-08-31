@@ -238,6 +238,9 @@ app.get('/token', (req, res) => {
     at.addGrant({ roomJoin: true, room });
 
     const jwt = at.toJwt();
+    console.log('Generated Token:', jwt);
+    console.log('URL:', process.env.LIVEKIT_URL);
+
     res.json({ token: jwt, url: process.env.LIVEKIT_URL || null });
 });
 

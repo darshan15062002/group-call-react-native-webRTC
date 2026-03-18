@@ -4,6 +4,9 @@ const { isAuthenticated } = require("../middleware/auth.js");
 const bcrypt = require("bcryptjs")
 const jwt = require('jsonwebtoken');
 const sendNotification = require("../utils/sendNotification.js");
+const axios = require("axios");
+
+const multer = require("multer");
 
 
 const router = express.Router()
@@ -143,8 +146,7 @@ router.post('/save-token', isAuthenticated, async (req, res) => {
 
 
 
-import axios from "axios";
-import multer from "multer";
+
 
 const upload = multer(); // memory storage
 

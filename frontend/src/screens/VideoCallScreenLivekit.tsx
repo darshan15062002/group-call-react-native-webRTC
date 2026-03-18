@@ -1,11 +1,12 @@
 // VideoCallScreen.livekit.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { SafeAreaView, View, Alert, PermissionsAndroid, Platform } from 'react-native';
-import { Room } from 'livekit-client';
-import { useRoom, VideoView, AudioSession, registerGlobals, log } from '@livekit/react-native';
+import { createLocalAudioTrack, createLocalVideoTrack, Room } from 'livekit-client';
+import { useRoom, VideoView, AudioSession, registerGlobals, log, RoomContext } from '@livekit/react-native';
 import { Track } from 'livekit-client';
 import CallControls from '../components/CallControls';
 import inCallManager from 'react-native-incall-manager';
+import VideoStreamLivekitView from '../components/VideoStreamLivekitView';
 
 // IMPORTANT: registerGlobals() should already be called in index.js
 // registerGlobals();
@@ -47,7 +48,17 @@ const VideoCallScreenLivekit = ({ route, navigation }: any) => {
                 await room.connect(wsUrl, token, { autoSubscribe: true });
 
 
+
+
+
+                // const audioTrack = await createLocalAudioTrack();
+                // const videoTrack = await createLocalVideoTrack();
+
+                // await room.localParticipant.publishTrack(audioTrack);
+                // await room.localParticipant.publishTrack(videoTrack);
+
                 console.log('Room connected, enabling mic and camera...');
+
 
                 const micResult = await room.localParticipant.setMicrophoneEnabled(true);
                 console.log('Mic track created:', micResult);
@@ -55,7 +66,7 @@ const VideoCallScreenLivekit = ({ route, navigation }: any) => {
                 const camResult = await room.localParticipant.setCameraEnabled(true);
                 console.log('Camera track created:', camResult);
 
-                await room.localParticipant.setMetadata(JSON.stringify({ email }));
+                // await room.localParticipant.setMetadata(JSON.stringify({ email }));
 
             } catch (err) {
                 console.error('LiveKit connect error', err);
@@ -121,38 +132,23 @@ const VideoCallScreenLivekit = ({ route, navigation }: any) => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#212121' }}>
-            <View style={{ flex: 1 }}>
-                {localVideoTrack ? (
-                    <VideoView style={{ flex: 1 }} videoTrack={localVideoTrack} />
-                ) : null}
-                {participants.map((p) => {
-                    // Get the remote camera publication
-                    const publication = p.getTrackPublication(Track.Source.Camera);
-                    const track = publication?.videoTrack;
-
-                    return track ? (
-                        <VideoView
-                            key={p.identity}
-                            style={{ width: 160, height: 120, margin: 5, borderRadius: 8 }}
-                            videoTrack={track}
-                        />
-                    ) : null;
-                })}
-
-
-            </View>
-
-            <CallControls
-                localMicOn={localMicOn}
-                localWebcamOn={localWebcamOn}
-                switchCamera={switchCamera}
-                toggleMic={toggleMic}
-                toggleCamera={toggleCamera}
-                toggleSpeaker={toggleSpeaker}
-                speakerOn={speakerOn}
-                joinLink={`https://videocall.com/video-call/${email}/${roomId}`}
-                handleHangout={endCall}
-            />
+            <RoomContext.Provider value={room}>
+                <VideoStreamLivekitView
+                    localParticipant={room.localParticipant}
+                    remoteParticipants={Array.from(participants?.values())}
+                />
+                <CallControls
+                    localMicOn={localMicOn}
+                    localWebcamOn={localWebcamOn}
+                    switchCamera={switchCamera}
+                    toggleMic={toggleMic}
+                    toggleCamera={toggleCamera}
+                    toggleSpeaker={toggleSpeaker}
+                    speakerOn={speakerOn}
+                    joinLink={`https://videocall.com/video-call/${email}/${roomId}`}
+                    handleHangout={endCall}
+                />
+            </RoomContext.Provider>
         </SafeAreaView>
     );
 };

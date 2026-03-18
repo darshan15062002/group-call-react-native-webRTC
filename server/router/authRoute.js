@@ -143,6 +143,87 @@ router.post('/save-token', isAuthenticated, async (req, res) => {
 
 
 
+import axios from "axios";
+import multer from "multer";
+
+const upload = multer(); // memory storage
+
+const TENANT_ID = process.env.TENANT_ID || "";
+const CLIENT_ID = process.env.CLIENT_ID || "";
+const CLIENT_SECRET = process.env.CLIENT_SECRET || "";
+const USER_EMAIL = process.env.USER_EMAIL || ""; // REQUIRED
+
+// helper: get token
+async function getAccessToken() {
+    const res = await axios.post(
+        `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,
+        new URLSearchParams({
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET,
+            grant_type: "client_credentials",
+            scope: "https://graph.microsoft.com/.default"
+        }),
+        {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }
+    );
+
+    return res.data.access_token;
+}
+
+
+// ================== UPLOAD API ==================
+
+router.post(
+    "/upload-onedrive",
+    isAuthenticated,
+    upload.single("file"),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: "File is required" });
+            }
+
+            const token = await getAccessToken();
+
+            // optional: avoid name collision
+            const fileName = `${Date.now()}-${req.file.originalname}`;
+
+            const uploadUrl = `https://graph.microsoft.com/v1.0/users/${USER_EMAIL}/drive/root:/${fileName}:/content`;
+
+            const response = await axios.put(uploadUrl, req.file.buffer, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": req.file.mimetype || "application/octet-stream"
+                }
+            });
+
+            return res.status(200).json({
+                success: true,
+                fileName: response.data.name,
+                url: response.data.webUrl
+            });
+
+        } catch (error) {
+            console.error(
+                "OneDrive Upload Error:",
+                error.response?.data || error.message
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Upload failed"
+            });
+        }
+    }
+);
+
+
+
+
+
 
 module.exports = router
 

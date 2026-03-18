@@ -188,7 +188,7 @@ router.post(
             }
 
             const token = await getAccessToken();
-
+            console.log("TOKEN:", token);
             // optional: avoid name collision
             const fileName = `${Date.now()}-${req.file.originalname}`;
 

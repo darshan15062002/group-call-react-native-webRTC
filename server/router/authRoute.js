@@ -180,7 +180,6 @@ async function getAccessToken() {
 
 router.post(
     "/upload-onedrive",
-    isAuthenticated,
     upload.single("file"),
     async (req, res) => {
         try {

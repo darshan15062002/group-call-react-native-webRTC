@@ -9,7 +9,7 @@
     "dev": "nodemon server.js"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": "20.x"
   },
   "keywords": [],
   "author": "",
@@ -30,4 +30,5 @@
   "devDependencies": {
     "dotenv": "^16.4.5"
   }
+  
 }

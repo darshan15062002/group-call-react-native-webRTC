@@ -171,6 +171,7 @@ async function getAccessToken() {
             }
         }
     );
+    console.log("TOKEN RESPONSE:", res.data);
 
     return res.data.access_token;
 }

@@ -214,7 +214,7 @@ const authRoute = require("./router/authRoute.js");
 const User = require('./model/userModel.js');
 const sendNotification = require('./utils/sendNotification.js');
 
-// app.use("/api/v1/", authRoute)
+app.use("/api/v1/", authRoute)
 
 app.get("/", (req, res) => {
     res.send("hello ")
